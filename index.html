@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Registro Inteligente | PAAC System</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta
+    name="description"
+    content="Centro de Registro Inteligente de Asistentes - Evento de Inteligencia Artificial PAAC System."
+  />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Orbitron:wght@500;700&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    :root {
+      --paac-blue: #5182df;
+      --paac-purple: #4d1ea2;
+      --bg-dark: #050712;
+      --card-bg: rgba(10, 12, 25, 0.88);
+      --card-border: rgba(140, 174, 255, 0.35);
+      --text-main: #f5f7ff;
+      --text-muted: #a9b0d9;
+      --accent: #00e0ff;
+      --danger: #ff5f7a;
+      --radius-xl: 24px;
+      --shadow-soft: 0 18px 45px rgba(0, 0, 0, 0.55);
+      --transition-fast: 0.18s ease-out;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: "Montserrat", system-ui, -apple-system, BlinkMacSystemFont,
+        "Segoe UI", sans-serif;
+      color: var(--text-main);
+      background: radial-gradient(circle at top left, #121633, #050712 55%);
+      overflow-x: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    /* Fondo compuesto: canvas + orbes + grid */
+    .background-orbit {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      z-index: -3;
+    }
+
+    #neuro-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at top left, #050712, #02030a 60%);
+    }
+
+    .gradient-orb {
+      position: absolute;
+      width: 420px;
+      height: 420px;
+      background: radial-gradient(circle, var(--paac-blue), transparent 60%);
+      filter: blur(10px);
+      opacity: 0.32;
+      animation: float-1 18s ease-in-out infinite alternate;
+      pointer-events: none;
+    }
+
+    .gradient-orb.orb-2 {
+      width: 520px;
+      height: 520px;
+      background: radial-gradient(circle, var(--paac-purple), transparent 65%);
+      top: auto;
+      bottom: -160px;
+      right: -120px;
+      left: auto;
+      animation: float-2 26s ease-in-out infinite alternate;
+      opacity: 0.4;
+    }
+
+    .grid-lines {
+      position: absolute;
+      inset: 0;
+      background-image: linear-gradient(
+          rgba(255, 255, 255, 0.04) 1px,
+          transparent 1px
+        ),
+        linear-gradient(
+          90deg,
+          rgba(255, 255, 255, 0.04) 1px,
+          transparent 1px
+        );
+      background-size: 42px 42px;
+      opacity: 0.22;
+      mask-image: radial-gradient(circle at center, black 0%, transparent 75%);
+      pointer-events: none;
+    }
+
+    @keyframes float-1 {
+      from {
+        transform: translate(-80px, -60px);
+      }
+      to {
+        transform: translate(60px, 40px);
+      }
+    }
+
+    @keyframes float-2 {
+      from {
+        transform: translate(40px, 40px);
+      }
+      to {
+        transform: translate(-60px, -20px);
+      }
+    }
+
+    /* Contenedor principal */
+    .shell {
+      width: 100%;
+      max-width: 960px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.9fr);
+      gap: 24px;
+      align-items: stretch;
+      position: relative;
+      z-index: 1;
+    }
+
+    @media (max-width: 820px) {
+      .shell {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .card {
+      border-radius: var(--radius-xl);
+      background: linear-gradient(
+          135deg,
+          rgba(81, 130, 223, 0.08),
+          rgba(77, 30, 162, 0.08)
+        ),
+        var(--card-bg);
+      border: 1px solid var(--card-border);
+      box-shadow: var(--shadow-soft);
+      padding: 24px 24px 22px;
+      position: relative;
+      overflow: hidden;
+      backdrop-filter: blur(12px);
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(
+        circle at top,
+        rgba(0, 224, 255, 0.12),
+        transparent 55%
+      );
+      opacity: 0.7;
+      pointer-events: none;
+    }
+
+    .card-inner {
+      position: relative;
+      z-index: 1;
+    }
+
+    .brand-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(0, 224, 255, 0.5);
+      background: radial-gradient(
+        circle at left,
+        rgba(0, 224, 255, 0.18),
+        transparent 70%
+      );
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 14px;
+    }
+
+    .brand-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 12px rgba(0, 224, 255, 0.85);
+    }
+
+    .title {
+      font-family: "Orbitron", system-ui, sans-serif;
+      font-size: clamp(1.6rem, 3vw, 2rem);
+      line-height: 1.18;
+      margin-bottom: 10px;
+    }
+
+    .title span {
+      background: linear-gradient(120deg, var(--paac-blue), var(--paac-purple));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .subtitle {
+      font-size: 0.93rem;
+      color: var(--text-muted);
+      max-width: 480px;
+      line-height: 1.5;
+      margin-bottom: 18px;
+    }
+
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .badge {
+      font-size: 0.78rem;
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(169, 176, 217, 0.45);
+      color: var(--text-muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      backdrop-filter: blur(6px);
+      background: radial-gradient(
+        circle at top left,
+        rgba(81, 130, 223, 0.18),
+        transparent 70%
+      );
+    }
+
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(0, 224, 255, 0.8);
+    }
+
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      font-size: 0.78rem;
+      margin-bottom: 8px;
+      color: var(--text-muted);
+    }
+
+    .meta-item strong {
+      color: var(--text-main);
+      font-weight: 600;
+    }
+
+    .hint {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      opacity: 0.9;
+    }
+
+    .ai-strip {
+      margin-top: 18px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(120, 130, 200, 0.32);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .ai-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 11px;
+      background: conic-gradient(
+        from 130deg,
+        var(--paac-blue),
+        var(--accent),
+        var(--paac-purple),
+        var(--paac-blue)
+      );
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 14px rgba(0, 224, 255, 0.6);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .ai-avatar::after {
+      content: "";
+      position: absolute;
+      inset: 6px;
+      border-radius: 9px;
+      border: 1px solid rgba(5, 7, 18, 0.6);
+      background: radial-gradient(circle, #050712 15%, transparent 60%);
+    }
+
+    .ai-avatar-inner-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 10px rgba(0, 224, 255, 1);
+      position: relative;
+      z-index: 1;
+    }
+
+    .ai-text {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .ai-text span {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    @media (max-width: 820px) {
+      .card.card-left {
+        order: 2;
+      }
+      .card.card-right {
+        order: 1;
+      }
+    }
+
+    /* Formulario */
+    .form-title {
+      font-size: 0.92rem;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .required {
+      color: var(--accent);
+      margin-left: 2px;
+      font-size: 0.8em;
+    }
+
+    input,
+    select {
+      background: rgba(6, 9, 22, 0.9);
+      border-radius: 12px;
+      border: 1px solid rgba(120, 140, 210, 0.7);
+      padding: 9px 11px;
+      font-size: 0.85rem;
+      color: var(--text-main);
+      outline: none;
+      transition: border-color var(--transition-fast),
+        box-shadow var(--transition-fast), transform var(--transition-fast);
+    }
+
+    input::placeholder {
+      color: rgba(169, 176, 217, 0.6);
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(0, 224, 255, 0.6);
+      transform: translateY(-1px);
+    }
+
+    .input-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .input-row .field-group {
+      flex: 1;
+    }
+
+    @media (max-width: 480px) {
+      .input-row {
+        flex-direction: column;
+      }
+    }
+
+    .checkbox-line {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .checkbox-line input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      margin-top: 3px;
+      cursor: pointer;
+    }
+
+    .checkbox-line label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .checkbox-line label strong {
+      color: var(--text-main);
+      font-weight: 600;
+    }
+
+    .button-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .btn-primary {
+      border: none;
+      outline: none;
+      border-radius: 999px;
+      padding: 9px 18px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      cursor: pointer;
+      color: #050712;
+      background: linear-gradient(
+        120deg,
+        var(--paac-blue),
+        var(--accent),
+        var(--paac-purple)
+      );
+      box-shadow: 0 8px 24px rgba(0, 224, 255, 0.45);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      position: relative;
+      overflow: hidden;
+      transition: transform var(--transition-fast),
+        box-shadow var(--transition-fast), opacity var(--transition-fast);
+    }
+
+    .btn-primary span.spark {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: #f5f7ff;
+      opacity: 0.88;
+      box-shadow: 0 0 16px rgba(255, 255, 255, 0.9);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 30px rgba(0, 224, 255, 0.6);
+      opacity: 0.96;
+    }
+
+    .btn-primary:active {
+      transform: translateY(1px) scale(0.99);
+      box-shadow: 0 6px 18px rgba(0, 224, 255, 0.6);
+    }
+
+    .button-note {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      max-width: 190px;
+      text-align: right;
+    }
+
+    .status-message {
+      font-size: 0.78rem;
+      margin-top: 6px;
+      min-height: 18px;
+    }
+
+    .status-ok {
+      color: #63f5c6;
+    }
+
+    .status-error {
+      color: var(--danger);
+    }
+
+    .footnote {
+      margin-top: 10px;
+      border-top: 1px solid rgba(120, 130, 200, 0.3);
+      padding-top: 8px;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .footnote span {
+      opacity: 0.85;
+    }
+
+    .footnote strong {
+      color: var(--accent);
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <!-- Fondo IA: red neuronal interactiva + orbes + grid -->
+  <div class="background-orbit">
+    <canvas id="neuro-canvas"></canvas>
+    <div class="gradient-orb orb-1"></div>
+    <div class="gradient-orb orb-2"></div>
+    <div class="grid-lines"></div>
+  </div>
+
+  <main class="shell">
+    <!-- Panel izquierdo -->
+    <section class="card card-left">
+      <div class="card-inner">
+        <div class="brand-pill">
+          <div class="brand-dot"></div>
+          PAAC System • IA en acción
+        </div>
+
+        <h1 class="title">
+          Centro de <span>Registro Inteligente</span> de Asistentes
+        </h1>
+
+        <p class="subtitle">
+          Registra tus datos en este módulo impulsado por <strong>PAAC System</strong> 
+          para participar en la rifa del evento de Inteligencia Artificial, 
+          y recibir información prioritaria sobre futuros proyectos, talleres y oportunidades.
+        </p>
+
+        <div class="badge-row">
+          <div class="badge">
+            <div class="badge-dot"></div>
+            Evento de Inteligencia Artificial
+          </div>
+          <div class="badge">
+            <div class="badge-dot"></div>
+            Sorteo en vivo durante el evento
+          </div>
+          <div class="badge">
+            <div class="badge-dot"></div>
+            Datos protegidos • Ley 1581 de 2012
+          </div>
+        </div>
+
+        <div class="meta-row">
+          <div class="meta-item">
+            <strong>Tiempo de registro:</strong> menos de 1 minuto
+          </div>
+          <div class="meta-item">
+            <strong>Requisito para la rifa:</strong> datos completos y verídicos
+          </div>
+        </div>
+
+        <p class="hint">
+          Utiliza tu número de documento real; será la referencia oficial para la rifa
+          y para validar la entrega del premio.
+        </p>
+
+        <div class="ai-strip">
+          <div class="ai-avatar">
+            <div class="ai-avatar-inner-dot"></div>
+          </div>
+          <p class="ai-text">
+            Este módulo está asistido por <span>PAAC-AI</span>, que ayuda a organizar y
+            validar la información de los asistentes en tiempo real.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Panel derecho: formulario -->
+    <section class="card card-right">
+      <div class="card-inner">
+        <h2 class="form-title">
+          Completa tus datos para participar en la rifa del evento
+        </h2>
+
+        <form id="registro-form">
+          <!-- Nombre y documento -->
+          <div class="input-row">
+            <div class="field-group">
+              <label for="nombre">
+                Nombre completo<span class="required">*</span>
+              </label>
+              <input
+                type="text"
+                id="nombre"
+                name="nombre"
+                autocomplete="name"
+                placeholder="Escribe tu nombre y apellido"
+                required
+              />
+            </div>
+
+            <div class="field-group">
+              <label for="documento">
+                Número de documento<span class="required">*</span>
+              </label>
+              <input
+                type="text"
+                id="documento"
+                name="documento"
+                inputmode="numeric"
+                placeholder="Ej. 1234567890"
+                required
+              />
+            </div>
+          </div>
+
+          <!-- Teléfono y ciudad -->
+          <div class="input-row">
+            <div class="field-group">
+              <label for="telefono">
+                Número de celular<span class="required">*</span>
+              </label>
+              <input
+                type="tel"
+                id="telefono"
+                name="telefono"
+                autocomplete="tel"
+                placeholder="Ej. 300 123 4567"
+                required
+              />
+            </div>
+
+            <div class="field-group">
+              <label for="ciudad">
+                Ciudad de residencia<span class="required">*</span>
+              </label>
+              <input
+                type="text"
+                id="ciudad"
+                name="ciudad"
+                placeholder="Ej. Bogotá, Montería..."
+                required
+              />
+            </div>
+          </div>
+
+          <!-- Correo -->
+          <div class="field-group">
+            <label for="correo">
+              Correo electrónico<span class="required">*</span>
+            </label>
+            <input
+              type="email"
+              id="correo"
+              name="correo"
+              autocomplete="email"
+              placeholder="tucorreo@ejemplo.com"
+              required
+            />
+          </div>
+
+          <!-- Interés -->
+          <div class="field-group">
+            <label for="interes">
+              ¿Qué tema de IA te interesa más?
+            </label>
+            <select id="interes" name="interes">
+              <option value="">Selecciona una opción</option>
+              <option value="vision">Visión por computador</option>
+              <option value="llm">Modelos de lenguaje (LLM)</option>
+              <option value="automatizacion">
+                Automatización y productividad
+              </option>
+              <option value="industria">Aplicaciones en industria</option>
+              <option value="salud">Aplicaciones en salud</option>
+              <option value="emprendimiento">Emprendimiento tecnológico</option>
+              <option value="otro">Otro / Explorando el tema</option>
+            </select>
+          </div>
+
+          <!-- Checkboxes -->
+          <div class="field-group">
+            <div class="checkbox-line">
+              <input
+                type="checkbox"
+                id="autoriza_datos"
+                name="autoriza_datos"
+                required
+              />
+              <label for="autoriza_datos">
+                Autorizo el tratamiento de mis datos personales por parte de
+                <strong>PAAC System</strong>, de acuerdo con la Ley 1581 de 2012,
+                exclusivamente para la gestión del evento, la rifa y el envío de
+                información relacionada.
+                <span class="required">*</span>
+              </label>
+            </div>
+
+            <div class="checkbox-line">
+              <input
+                type="checkbox"
+                id="acepta_info"
+                name="acepta_info"
+              />
+              <label for="acepta_info">
+                Deseo recibir información sobre futuros eventos, talleres y
+                proyectos de inteligencia artificial de <strong>PAAC System</strong>.
+              </label>
+            </div>
+          </div>
+
+          <!-- Botón -->
+          <div class="button-row">
+            <button type="submit" class="btn-primary">
+              <span class="spark"></span>
+              Registrar mi participación
+            </button>
+            <p class="button-note">
+              Se anunciará el ganador de la rifa en vivo durante el evento.
+            </p>
+          </div>
+
+          <p id="status-msg" class="status-message"></p>
+
+          <div class="footnote">
+            <span>Campos marcados con <span class="required">*</span> son obligatorios.</span>
+            <span>Powered by <strong>PAAC System</strong> • IA aplicada a experiencias reales.</span>
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Fondo de red neuronal interactiva
+    const canvas = document.getElementById("neuro-canvas");
+    const ctx = canvas.getContext("2d");
+    let points = [];
+    const POINTS_COUNT = 85;
+    const MAX_DISTANCE = 140;
+    const MOUSE_INFLUENCE = 160;
+
+    const mouse = {
+      x: null,
+      y: null,
+      active: false,
+    };
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+
+    function initPoints() {
+      points = [];
+      for (let i = 0; i < POINTS_COUNT; i++) {
+        points.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          vx: (Math.random() - 0.5) * 0.35,
+          vy: (Math.random() - 0.5) * 0.35,
+        });
+      }
+    }
+
+    initPoints();
+
+    window.addEventListener("mousemove", (e) => {
+      const rect = canvas.getBoundingClientRect();
+      mouse.x = e.clientX - rect.left;
+      mouse.y = e.clientY - rect.top;
+      mouse.active = true;
+    });
+
+    window.addEventListener("mouseleave", () => {
+      mouse.active = false;
+    });
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const gradient = ctx.createRadialGradient(
+        canvas.width * 0.7,
+        canvas.height * 0.1,
+        0,
+        canvas.width * 0.7,
+        canvas.height * 0.1,
+        canvas.width * 0.9
+      );
+      gradient.addColorStop(0, "rgba(81,130,223,0.08)");
+      gradient.addColorStop(1, "rgba(5,7,18,1)");
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      points.forEach((p, idx) => {
+        p.x += p.vx;
+        p.y += p.vy;
+
+        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+
+        ctx.fillStyle = "rgba(0,224,255,0.85)";
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 2.1, 0, Math.PI * 2);
+        ctx.fill();
+
+        for (let j = idx + 1; j < points.length; j++) {
+          const p2 = points[j];
+          const dx = p.x - p2.x;
+          const dy = p.y - p2.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < MAX_DISTANCE) {
+            const alpha = 1 - dist / MAX_DISTANCE;
+            ctx.strokeStyle = "rgba(0,224,255," + (alpha * 0.6) + ")";
+            ctx.lineWidth = 0.6;
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.stroke();
+          }
+        }
+
+        if (mouse.active && mouse.x !== null && mouse.y !== null) {
+          const dxm = p.x - mouse.x;
+          const dym = p.y - mouse.y;
+          const distm = Math.sqrt(dxm * dxm + dym * dym);
+          if (distm < MOUSE_INFLUENCE) {
+            const alphaM = 1 - distm / MOUSE_INFLUENCE;
+            ctx.strokeStyle = "rgba(0,224,255," + (alphaM * 0.9 + 0.1) + ")";
+            ctx.lineWidth = 0.9;
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(mouse.x, mouse.y);
+            ctx.stroke();
+
+            p.x -= (dxm / distm) * 0.12;
+            p.y -= (dym / distm) * 0.12;
+          }
+        }
+      });
+
+      requestAnimationFrame(draw);
+    }
+
+    draw();
+
+    /***********************************************
+     * Redirección al Instagram de PAAC System
+     **********************************************/
+    const form = document.getElementById("registro-form");
+    const statusMsg = document.getElementById("status-msg");
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault(); // evita recarga
+
+      statusMsg.textContent =
+        "✔ Registro enviado. Redirigiendo a PAAC System…";
+      statusMsg.className = "status-message status-ok";
+
+      window.location.href =
+        "https://www.instagram.com/paacsystemcol?igsh=cTJmOHBoYnhzc2k4";
+    });
+  </script>
+</body>
+</html>
